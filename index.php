@@ -9,459 +9,196 @@ if (!isset($_SESSION['username'])) {
 ?>
 
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" class="h-full">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>R&D Data Search Dashboard</title>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        'quicksand': ['Quicksand', 'sans-serif'],
+                    },
+                    colors: {
+                        'primary': '#4e54c8',
+                        'dark': '#181818',
+                    },
+                    animation: {
+                        'pulse': 'pulse 1.5s infinite',
+                        'animate': 'animate 5s linear infinite',
+                    },
+                    keyframes: {
+                        pulse: {
+                            '0%, 100%': { opacity: '0.6' },
+                            '50%': { opacity: '1' },
+                        },
+                        animate: {
+                            '0%': { transform: 'translateY(-100%)' },
+                            '100%': { transform: 'translateY(100%)' },
+                        }
+                    }
+                }
+            }
+        }
+    </script>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Quicksand:wght@300;400;500;600;700&display=swap');
-        
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            font-family: 'Quicksand', sans-serif;
+        .animate-background-span {
+            animation: float 5s ease-in-out infinite;
+            animation-delay: calc(0.2s * var(--i));
         }
-        
-        body {
-            display: flex;
-            flex-direction: column;
-            min-height: 100vh;
-            background: #000;
-            color: #fff;
-            overflow-x: hidden;
+        @keyframes float {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-20px); }
         }
-        
-        .background {
-            position: fixed;
-            width: 100vw;
-            height: 100vh;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            gap: 2px;
-            flex-wrap: wrap;
-            overflow: hidden;
-            z-index: -1;
+        /* Account icon pulse animation */
+        @keyframes account-pulse {
+            0%, 100% { transform: scale(1);}
+            50% { transform: scale(1.18);}
         }
-        
-        .background::before {
-            content: '';
-            position: absolute;
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(#000, #4e54c8, #000);
-            animation: animate 5s linear infinite;
+        .animate-account-pulse {
+            animation: account-pulse 1.6s infinite;
         }
-        
-        @keyframes animate {
-            0% {
-                transform: translateY(-100%);
-            }
-            100% {
-                transform: translateY(100%);
-            }
+        /* Logout icon bounce animation */
+        @keyframes logout-bounce {
+            0% { transform: translateX(0);}
+            30% { transform: translateX(6px);}
+            50% { transform: translateX(-3px);}
+            70% { transform: translateX(3px);}
+            100% { transform: translateX(0);}
         }
-        
-        .background span {
-            position: relative;
-            display: block;
-            width: calc(6.25vw - 2px);
-            height: calc(6.25vw - 2px);
-            background: #181818;
-            z-index: 2;
-            transition: 1.5s;
-        }
-        
-        .background span:hover {
-            background: #4e54c8;
-            transition: 0s;
-        }
-        
-        .content-wrapper {
-            position: relative;
-            z-index: 10;
-            display: flex;
-            flex-direction: column;
-            min-height: 100vh;
-            width: 100%;
-        }
-        
-        .main-container {
-            display: flex;
-            flex-grow: 1;
-        }
-        
-        .sidebar {
-            background: rgba(34, 34, 34, 0.9);
-            width: 250px;
-            padding: 20px;
-            transition: transform 0.3s ease;
-            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.5);
-            height: 100vh;
-            position: fixed;
-            z-index: 100;
-        }
-        
-        .sidebar.hidden {
-            transform: translateX(-100%);
-        }
-        
-        .sidebar h2 {
-            font-size: 1.5em;
-            color: #4e54c8;
-            text-transform: uppercase;
-            margin-bottom: 20px;
-            text-align: center;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-        
-        .sidebar ul {
-            list-style: none;
-        }
-        
-        .sidebar li {
-            margin-bottom: 15px;
-        }
-        
-        .sidebar a {
-            display: block;
-            padding: 10px;
-            background: #333;
-            color: #fff;
-            text-decoration: none;
-            border-radius: 4px;
-            transition: 0.3s;
-        }
-        
-        .sidebar a:hover {
-            background: #4e54c8;
-        }
-        
-        .sidebar input[type="text"] {
-            width: 100%;
-            padding: 10px;
-            margin-bottom: 10px;
-            background: #333;
-            border: none;
-            border-radius: 4px;
-            color: #fff;
-        }
-        
-        .sidebar button {
-            width: 100%;
-            padding: 10px;
-            background: #4e54c8;
-            color: #fff;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
-            transition: 0.3s;
-        }
-        
-        .sidebar button:hover {
-            opacity: 0.8;
-        }
-        
-        .main-content {
-            flex-grow: 1;
-            margin-left: 250px;
-            padding: 30px;
-            transition: margin-left 0.3s ease;
-            background: rgba(0, 0, 0, 0.7);
-        }
-        
-        .main-content.full-width {
-            margin-left: 0;
-        }
-        
-        .header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 30px;
-        }
-        
-        .header h1 {
-            font-size: 2.5em;
-            font-weight: 700;
-            color: #4e54c8;
-        }
-        
-        .user-info {
-            text-align: right;
-        }
-        
-        .user-info p {
-            margin-bottom: 5px;
-        }
-        
-        .user-info a {
-            color: #4e54c8;
-            text-decoration: none;
-        }
-        
-        .user-info a:hover {
-            text-decoration: underline;
-        }
-        
-        .search-container {
-            display: flex;
-            margin-bottom: 20px;
-        }
-        
-        .search-container input {
-            flex-grow: 1;
-            padding: 15px;
-            background: #333;
-            border: none;
-            border-radius: 4px 0 0 4px;
-            color: #fff;
-        }
-        
-        .search-container button {
-            padding: 15px 25px;
-            background: #4e54c8;
-            color: #fff;
-            border: none;
-            border-radius: 0 4px 4px 0;
-            cursor: pointer;
-            transition: 0.3s;
-        }
-        
-        .search-container button:hover {
-            opacity: 0.8;
-        }
-        
-        #loading {
-            text-align: center;
-            color: #4e54c8;
-            margin: 20px 0;
-            font-weight: 600;
-        }
-        
-        #results {
-            background: rgba(34, 34, 34, 0.9);
-            padding: 20px;
-            border-radius: 4px;
-            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.5);
-        }
-        
-        .result-item {
-            background: #333;
-            padding: 15px;
-            margin-bottom: 15px;
-            border-radius: 4px;
-            transition: transform 0.3s ease, box-shadow 0.3s ease;
-        }
-        
-        .result-item:hover {
-            transform: scale(1.02);
-            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.3);
-        }
-        
-        .result-item h3 {
-            color: #4e54c8;
-            margin-bottom: 10px;
-        }
-        
-        footer {
-            background: rgba(34, 34, 34, 0.9);
-            text-align: center;
-            padding: 15px;
-            color: #aaa;
-        }
-        
-        .control-buttons {
-            position: fixed;
-            bottom: 20px;
-            right: 20px;
-            z-index: 100;
-        }
-        
-        .control-button {
-            display: block;
-            width: 50px;
-            height: 50px;
-            background: #4e54c8;
-            color: #fff;
-            border: none;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin-top: 10px;
-            cursor: pointer;
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
-            transition: 0.3s;
-        }
-        
-        .control-button:hover {
-            transform: scale(1.1);
-        }
-        
-        @media (max-width: 768px) {
-            .sidebar {
-                width: 100%;
-                height: auto;
-                position: relative;
-            }
-            
-            .main-content {
-                margin-left: 0;
-            }
-            
-            .search-container {
-                flex-direction: column;
-            }
-            
-            .search-container input,
-            .search-container button {
-                width: 100%;
-                border-radius: 4px;
-                margin-bottom: 10px;
-            }
-            
-            .background span {
-                width: calc(10vw - 2px);
-                height: calc(10vw - 2px);
-            }
-        }
-        
-        @media (max-width: 600px) {
-            .background span {
-                width: calc(20vw - 2px);
-                height: calc(20vw - 2px);
-            }
-        }
-        
-        /* Animation for loading */
-        @keyframes pulse {
-            0% { opacity: 0.6; }
-            50% { opacity: 1; }
-            100% { opacity: 0.6; }
-        }
-        
-        .animate-pulse {
-            animation: pulse 1.5s infinite;
+        .group:hover .animate-logout-bounce {
+            animation: logout-bounce 0.6s;
         }
     </style>
 </head>
-<body>
-    <div class="background">
+<body class="min-h-screen bg-black text-white font-quicksand overflow-x-hidden flex flex-col">
+    <!-- Animated Background -->
+    <div class="fixed inset-0 flex justify-center items-center flex-wrap gap-0.5 overflow-hidden z-0">
+        <div class="absolute inset-0 bg-gradient-to-b from-black via-primary to-black animate-animate"></div>
         <?php for($i = 0; $i < 100; $i++): ?>
-            <span></span>
+            <span class="relative block w-6 h-6 md:w-16 md:h-16 lg:w-24 lg:h-24 bg-dark z-10 transition duration-1000 hover:bg-primary hover:duration-0 animate-background-span" style="--i:<?php echo $i; ?>"></span>
         <?php endfor; ?>
     </div>
     
-    <div class="content-wrapper">
-        <div class="main-container">
-            <div id="sidebar" class="sidebar">
-                <h2>
-                    <img src="images.png" alt="Logo" style="height: 30px; width: 30px; margin-right: 10px;"> 
-                    R&D Dashboard
-                </h2>
-                <ul>
-                    <li><a href="#">Dashboard</a></li>
-                    <li>
-                        <input type="text" id="sidebarSearchInput" placeholder="Ask about R&D...">
-                        <button onclick="searchData('sidebarSearchInput')">Search</button>
-                    </li>
-                </ul>
-            </div>
-            
-            <div class="main-content" id="mainContent">
-                <div class="header">
-                    <h1>R&D Search</h1>
-                    <div class="user-info">
-                        <p>Welcome, <span><?php echo htmlspecialchars($_SESSION['username']); ?></span></p>
-                        <a href="logout.php">Logout</a>
+    <!-- Content Wrapper -->
+    <div class="relative z-10 flex flex-col min-h-screen w-full">
+        <div class="flex flex-grow">
+            <!-- Main Content (Full Width) -->
+            <div id="mainContent" class="flex-grow w-full p-8 transition-all duration-300 bg-black/70">
+                <div class="flex justify-between items-center mb-8">
+                    <h1 class="text-4xl font-bold text-primary">R&D Search</h1>
+                    <div class="flex items-center space-x-4">
+                        <!-- Account Icon and Username -->
+                        <span class="flex items-center gap-2 px-3 py-1 rounded-full bg-gray-800/60 hover:bg-primary/20 transition group cursor-pointer">
+                            <i class="fas fa-user-circle text-primary text-2xl animate-account-pulse group-hover:scale-110 group-hover:rotate-6 transition"></i>
+                            <span class="font-semibold"><?php echo htmlspecialchars($_SESSION['username']); ?></span>
+                        </span>
+                        <!-- Logout Icon and Link -->
+                        <a href="logout.php" class="flex items-center gap-2 px-3 py-1 rounded-full bg-gray-800/60 hover:bg-red-600/80 transition group cursor-pointer">
+                            <i class="fas fa-sign-out-alt text-red-400 text-xl animate-logout-bounce transition"></i>
+                            <span class="text-primary group-hover:text-white font-semibold">Logout</span>
+                        </a>
                     </div>
                 </div>
                 
-                <p style="margin-bottom: 20px; color: #aaa;">Search your research data intelligently using Natural Language Processing.</p>
+                <p class="mb-5 text-gray-400">Search your research data intelligently using Natural Language Processing.</p>
                 
-                <div class="search-container">
-                    <input type="text" id="mainSearchInput" placeholder="Ask about R&D...">
-                    <button onclick="searchData('mainSearchInput')">Search</button>
+                <div class="flex flex-col md:flex-row mb-2">
+                    <input 
+                        type="text" 
+                        id="mainSearchInput" 
+                        placeholder="Ask about R&D..." 
+                        class="flex-grow p-4 bg-gray-800 border-none rounded-l text-white mb-2 md:mb-0 focus:outline-none"
+                    >
+                    <button 
+                        id="mainSearchBtn"
+                        onclick="searchData('mainSearchInput')" 
+                        class="p-4 bg-primary text-white border-none rounded-r md:w-auto cursor-pointer transition hover:opacity-80"
+                    >Search</button>
                 </div>
-                
-                <div id="loading" class="hidden animate-pulse">Searching...</div>
-                
-                <div id="results"></div>
+                <!-- Highlighted purple searching text -->
+                <div id="search-status" class="text-primary text-center font-semibold my-2 hidden">Searching...</div>
+                <div id="results" class="bg-dark/90 p-5 rounded shadow-2xl"></div>
             </div>
         </div>
         
-        <footer>
+        <footer class="bg-dark/90 text-center p-4 text-gray-400">
             © 2025 R&D AI Search. All rights reserved.
         </footer>
     </div>
     
-    <div class="control-buttons">
-        <button class="control-button" onclick="toggleSidebar()">
-            <i class="fas fa-bars"></i>
-        </button>
-    </div>
-    
     <script>
-        // Create animated background
-        const backgroundSpans = document.querySelectorAll('.background span');
-        
-        backgroundSpans.forEach(span => {
-            span.style.animationDelay = Math.random() * 5 + 's';
-            span.style.animationDuration = Math.random() * 5 + 5 + 's';
+        // Show highlighted searching status and trigger search on Enter
+        document.getElementById('mainSearchInput').addEventListener('keydown', function(event) {
+            if (event.key === "Enter") {
+                event.preventDefault();
+                searchData('mainSearchInput');
+            }
         });
-        
+
+        // Show "Searching..." for at least 2 seconds
         function searchData(inputId) {
             const query = document.getElementById(inputId).value;
-            const loading = document.getElementById("loading");
+            const searchStatus = document.getElementById("search-status");
             const resultsContainer = document.getElementById("results");
-            
+            const MIN_SEARCH_TIME = 2000; // 2 seconds
+
             if (query.trim() === "") {
                 alert("Please enter a search query.");
                 return;
             }
-            
+
             resultsContainer.innerHTML = "";
-            loading.classList.remove("hidden");
-            
+            searchStatus.classList.remove("hidden"); // Show "Searching..."
+            const startTime = Date.now();
+
             fetch(`./search.php?query=${encodeURIComponent(query)}`)
                 .then(response => response.json())
                 .then(data => {
-                    loading.classList.add("hidden");
-                    if (data.error) {
-                        resultsContainer.innerHTML = `<p style="color: #ff6b6b;">${data.error}</p>`;
-                        return;
-                    }
-                    
-                    let resultHTML = `<h2 style="font-size: 1.8em; margin-bottom: 20px; color: #4e54c8;">Search Results</h2>`;
-                    
-                    data.forEach(result => {
-                        resultHTML += `
-                            <div class="result-item">
-                                <h3>${result.title}</h3>
-                                <p>${result.snippet}</p>
-                            </div>
-                        `;
-                    });
-                    
-                    resultsContainer.innerHTML = resultHTML;
+                    const elapsed = Date.now() - startTime;
+                    const remaining = MIN_SEARCH_TIME - elapsed;
+                    setTimeout(() => {
+                        searchStatus.classList.add("hidden"); // Hide after min time
+                        if (data.error) {
+                            resultsContainer.innerHTML = `<p class="text-red-400">${data.error}</p>`;
+                            return;
+                        }
+
+                        let resultHTML = `<h2 class="text-2xl mb-5 text-primary">Search Results</h2>`;
+                        data.forEach(result => {
+                            resultHTML += `
+                                <div class="bg-gray-800 p-4 mb-4 rounded transition duration-300 hover:scale-105 hover:shadow-lg">
+                                    <h3 class="text-primary mb-2">${result.title}</h3>
+                                    <p>${result.snippet}</p>
+                                </div>
+                            `;
+                        });
+                        resultsContainer.innerHTML = resultHTML;
+                    }, remaining > 0 ? remaining : 0);
                 })
                 .catch(error => {
-                    loading.classList.add("hidden");
-                    console.error(error);
-                    resultsContainer.innerHTML = `<p style="color: #ff6b6b;">An error occurred while searching.</p>`;
+                    const elapsed = Date.now() - startTime;
+                    const remaining = MIN_SEARCH_TIME - elapsed;
+                    setTimeout(() => {
+                        searchStatus.classList.add("hidden");
+                        resultsContainer.innerHTML = `<p class="text-red-400">An error occurred while searching.</p>`;
+                    }, remaining > 0 ? remaining : 0);
                 });
         }
-        
-        function toggleSidebar() {
-            document.getElementById('sidebar').classList.toggle('hidden');
-            document.getElementById('mainContent').classList.toggle('full-width');
-        }
+
+        // Initialize background animation
+        const backgroundSpans = document.querySelectorAll('.animate-background-span');
+        backgroundSpans.forEach((span, index) => {
+            const delay = Math.random() * 5;
+            const duration = Math.random() * 5 + 5;
+            span.style.animationDelay = `${delay}s`;
+            span.style.animationDuration = `${duration}s`;
+        });
     </script>
 </body>
 </html>

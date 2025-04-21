@@ -33,69 +33,56 @@ if (!isset($_SESSION['csrf_token'])) {
             justify-content: center;
             align-items: center;
             min-height: 100vh;
-            background: #000;
+            background: #070b24;
             overflow: hidden;
         }
         
-        section {
-            position: absolute;
+        /* New Background Design */
+        .background {
+            position: fixed;
             width: 100vw;
             height: 100vh;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            gap: 2px;
-            flex-wrap: wrap;
+            top: 0;
+            left: 0;
+            z-index: 1;
             overflow: hidden;
         }
         
-        section::before {
-            content: '';
+        .bubble {
             position: absolute;
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(#000, #4e54c8, #000);
-            animation: animate 5s linear infinite;
+            border-radius: 50%;
+            background: radial-gradient(circle at 30% 30%, rgba(78, 84, 200, 0.8), rgba(78, 84, 200, 0.1));
+            box-shadow: 0 0 20px rgba(78, 84, 200, 0.5);
+            backdrop-filter: blur(5px);
+            z-index: 1;
+            opacity: 0.6;
         }
         
-        @keyframes animate {
-            0% {
-                transform: translateY(-100%);
-            }
-            100% {
-                transform: translateY(100%);
-            }
-        }
-        
-        section span {
+        /* Main Content Container */
+        .container {
             position: relative;
-            display: block;
-            width: calc(6.25vw - 2px);
-            height: calc(6.25vw - 2px);
-            background: #181818;
-            z-index: 2;
-            transition: 1.5s;
+            display: flex;
+            width: 900px;
+            max-width: 90%;
+            z-index: 10;
         }
         
-        section span:hover {
-            background: #4e54c8;
-            transition: 0s;
-        }
-        
-        section .signin {
-            position: absolute;
+        /* Login Box */
+        .signin {
+            position: relative;
             width: 400px;
-            background: #222;
+            background: rgba(34, 34, 34, 0.9);
             z-index: 1000;
             display: flex;
             justify-content: center;
             align-items: center;
             padding: 40px;
-            border-radius: 4px;
+            border-radius: 8px;
             box-shadow: 0 15px 35px rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(10px);
         }
         
-        section .signin .content {
+        .signin .content {
             position: relative;
             width: 100%;
             display: flex;
@@ -105,25 +92,25 @@ if (!isset($_SESSION['csrf_token'])) {
             gap: 40px;
         }
         
-        section .signin .content h2 {
+        .signin .content h2 {
             font-size: 2em;
             color: #4e54c8;
             text-transform: uppercase;
         }
         
-        section .signin .content .form {
+        .signin .content .form {
             width: 100%;
             display: flex;
             flex-direction: column;
             gap: 25px;
         }
         
-        section .signin .content .form .inputBox {
+        .signin .content .form .inputBox {
             position: relative;
             width: 100%;
         }
         
-        section .signin .content .form .inputBox input {
+        .signin .content .form .inputBox input {
             position: relative;
             width: 100%;
             background: #333;
@@ -136,7 +123,7 @@ if (!isset($_SESSION['csrf_token'])) {
             font-size: 1em;
         }
         
-        section .signin .content .form .inputBox i {
+        .signin .content .form .inputBox i {
             position: absolute;
             left: 0;
             padding: 15px 10px;
@@ -184,20 +171,6 @@ if (!isset($_SESSION['csrf_token'])) {
             opacity: 0.6;
         }
         
-        @media (max-width: 900px) {
-            section span {
-                width: calc(10vw - 2px);
-                height: calc(10vw - 2px);
-            }
-        }
-        
-        @media (max-width: 600px) {
-            section span {
-                width: calc(20vw - 2px);
-                height: calc(20vw - 2px);
-            }
-        }
-        
         .error-message {
             background-color: rgba(255, 0, 0, 0.2);
             color: #ff6b6b;
@@ -206,14 +179,105 @@ if (!isset($_SESSION['csrf_token'])) {
             text-align: center;
             width: 100%;
         }
+        
+        /* Image Slider */
+        .image-container {
+            position: relative;
+            width: 400px;
+            height: 500px;
+            margin-left: 40px;
+            overflow: hidden;
+            border-radius: 8px;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.5);
+            display: none; /* Hide on mobile initially */
+        }
+        
+        .slider-images {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            transition: transform 0.8s ease-in-out;
+        }
+        
+        .slider-image {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            background-size: cover;
+            background-position: center;
+            opacity: 0;
+            transition: opacity 0.8s ease-in-out;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+        
+        .slider-image.active {
+            opacity: 1;
+        }
+        
+        .slider-image::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(45deg, rgba(0,0,0,0.4), rgba(78, 84, 200, 0.2));
+        }
+        
+        .slider-caption {
+            position: absolute;
+            bottom: 20px;
+            left: 20px;
+            color: white;
+            z-index: 10;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.5);
+        }
+        
+        .slider-caption h3 {
+            font-size: 1.5rem;
+            margin-bottom: 5px;
+        }
+        
+        .slider-caption p {
+            font-size: 0.9rem;
+        }
+        
+        /* Responsive Design */
+        @media (min-width: 768px) {
+            .image-container {
+                display: block;
+            }
+        }
+        
+        @media (max-width: 900px) {
+            .container {
+                flex-direction: column;
+                align-items: center;
+                gap: 20px;
+            }
+            
+            .signin, .image-container {
+                width: 100%;
+                max-width: 400px;
+            }
+            
+            .image-container {
+                height: 300px;
+                margin-left: 0;
+                margin-top: 20px;
+            }
+        }
     </style>
 </head>
 <body>
-    <section>
-        <?php for($i = 0; $i < 100; $i++): ?>
-            <span></span>
-        <?php endfor; ?>
-
+    <!-- New Background Animation -->
+    <div class="background" id="background">
+        <!-- Bubbles will be generated by JS -->
+    </div>
+    
+    <div class="container">
+        <!-- Login Form -->
         <div class="signin">
             <div class="content">
                 <h2>R&D Dashboard Login</h2>
@@ -248,17 +312,85 @@ if (!isset($_SESSION['csrf_token'])) {
                 </form>
             </div>
         </div>
-    </section>
+        
+        <!-- Image Slider -->
+        <div class="image-container">
+            <div class="slider-images">
+                <!-- Using placeholder images instead of real URLs -->
+                <div class="slider-image active" style="background-image: url('./images/9.jpeg')">
+                    <div class="slider-caption">
+                        <h3>Research & Development</h3>
+                        <p>Next-gen solutions for tomorrow's challenges</p>
+                    </div>
+                </div>
+                <div class="slider-image" style="background-image: url('./images/5.jpeg')">
+                    <div class="slider-caption">
+                        <h3>Advanced Analytics</h3>
+                        <p>Actionable insights through data</p>
+                    </div>
+                </div>
+                <div class="slider-image" style="background-image: url('./images/4.jpeg')">
+                    <div class="slider-caption">
+                        <h3>Secure Infrastructure</h3>
+                        <p>Protected systems for enterprise innovation</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
     
     <script>
-        // Create animated background
-        const section = document.querySelector('section');
-        const spans = document.querySelectorAll('span');
+        // Create bubbles for background
+        const background = document.getElementById('background');
+        const bubbleCount = 15;
         
-        spans.forEach(span => {
-            span.style.animationDelay = Math.random() * 5 + 's';
-            span.style.animationDuration = Math.random() * 5 + 5 + 's';
-        });
+        for (let i = 0; i < bubbleCount; i++) {
+            const size = Math.random() * 200 + 50;
+            const bubble = document.createElement('div');
+            bubble.classList.add('bubble');
+            bubble.style.width = `${size}px`;
+            bubble.style.height = `${size}px`;
+            bubble.style.left = `${Math.random() * 100}%`;
+            bubble.style.top = `${Math.random() * 100}%`;
+            bubble.style.animationDelay = `${Math.random() * 5}s`;
+            
+            // Set animation properties
+            bubble.style.animation = `float ${Math.random() * (20 - 10) + 10}s infinite ease-in-out`;
+            background.appendChild(bubble);
+        }
+        
+        // Add keyframe animation dynamically
+        const style = document.createElement('style');
+        style.innerHTML = `
+            @keyframes float {
+                0% {
+                    transform: translate(0, 0) rotate(0deg) scale(1);
+                }
+                33% {
+                    transform: translate(${Math.random() * 100 - 50}px, ${Math.random() * 100 - 50}px) rotate(${Math.random() * 20}deg) scale(${Math.random() * 0.2 + 0.9});
+                }
+                66% {
+                    transform: translate(${Math.random() * 100 - 50}px, ${Math.random() * 100 - 50}px) rotate(${Math.random() * 20}deg) scale(${Math.random() * 0.2 + 0.9});
+                }
+                100% {
+                    transform: translate(0, 0) rotate(0deg) scale(1);
+                }
+            }
+        `;
+        document.head.appendChild(style);
+        
+        // Image slider functionality
+        const images = document.querySelectorAll('.slider-image');
+        let currentIndex = 0;
+        
+        function changeImage() {
+            images.forEach(img => img.classList.remove('active'));
+            currentIndex = (currentIndex + 1) % images.length;
+            images[currentIndex].classList.add('active');
+        }
+        
+        // Change image every 4 seconds
+        setInterval(changeImage, 4000);
     </script>
 </body>
 </html>

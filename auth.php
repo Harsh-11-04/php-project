@@ -37,9 +37,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             session_regenerate_id(true);
             
             // Redirect to intended page or dashboard
-            $redirect = $_SESSION['redirect_to'] ?? 'index.php';
+            $redirect = $_SESSION['redirect_to'] ?? 'welcome.php';
             unset($_SESSION['redirect_to']);
-            header("Location: $redirect");
+            header("Location: welcome.php");
             exit();
         }
     }

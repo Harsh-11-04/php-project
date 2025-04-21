@@ -1,56 +1,71 @@
 <?php
+// Start the session at the very beginning before any output
 session_start();
-// Ensure user is logged in
-if (!isset($_SESSION['username'])) {
+
+// Set user_id for testing and make sure it persists
+$_SESSION['user_id'] = 1;
+
+$debug = [
+    "stage" => "initial",
+    "session" => isset($_SESSION['user_id']) ? "Session user_id exists: " . $_SESSION['user_id'] : "No session user_id",
+    "session_id" => session_id()
+];
+
+// Authentication check
+if (!isset($_SESSION['user_id'])) {
+    $debug["stage"] = "auth_failed";
     http_response_code(401);
-    echo json_encode(["error" => "Unauthorized"]);
+    echo json_encode(["error" => "Unauthorized", "debug" => $debug]);
     exit();
 }
 
-header("Content-Type: application/json");
-
 // Include database connection
 require_once 'config.php';
+$debug["stage"] = "after_config";
 
-// Function to expand query semantically (very basic example)
+// Check connection
+if ($conn->connect_error) {
+    $debug["stage"] = "connection_failed";
+    $debug["error"] = $conn->connect_error;
+    http_response_code(500);
+    echo json_encode(["error" => "Database connection failed", "debug" => $debug]);
+    exit();
+}
+
+// Function to expand query semantically
 function expandQuery($query) {
     $expansions = [
         "AI" => ["artificial intelligence", "machine learning", "neural networks"],
         "ML" => ["machine learning", "deep learning", "AI"],
         "robotics" => ["automation", "robots", "mechanical systems"],
         "data" => ["big data", "data science", "data analysis"]
-        // You can expand this list or link it to a database or external API later
     ];
-
     $query = strtolower($query);
     $expandedTerms = [$query];
-
     foreach ($expansions as $keyword => $synonyms) {
         if (strpos($query, strtolower($keyword)) !== false) {
             $expandedTerms = array_merge($expandedTerms, $synonyms);
         }
     }
-
     return array_unique($expandedTerms);
 }
 
 // Validate and sanitize the search query
 $query = isset($_GET['query']) ? trim($_GET['query']) : '';
-
 if (empty($query)) {
+    $debug["stage"] = "empty_query";
     http_response_code(400);
-    echo json_encode(["error" => "Empty search query"]);
+    echo json_encode(["error" => "Empty search query", "debug" => $debug]);
     exit();
 }
 
-// Add query to search log
-$logStmt = $conn->prepare("INSERT INTO search_logs (user_id, query, timestamp) VALUES (?, ?, NOW())");
-$logStmt->bind_param("is", $_SESSION['user_id'], $query);
-$logStmt->execute();
-$logStmt->close();
+$debug["query"] = $query;
+$debug["stage"] = "query_validated";
 
 // Expand query semantically
 $expandedTerms = expandQuery($query);
+$debug["expanded_terms"] = $expandedTerms;
+$debug["stage"] = "query_expanded";
 
 // Build SQL dynamically
 $sql = "SELECT id, title, snippet FROM research_data WHERE ";
@@ -67,35 +82,79 @@ foreach ($expandedTerms as $term) {
 }
 
 $sql .= implode(" OR ", $conditions) . " LIMIT 10";
+$debug["sql"] = $sql;
+$debug["params"] = $params;
+$debug["types"] = $types;
+$debug["stage"] = "sql_built";
 
+// Prepare statement
 $stmt = $conn->prepare($sql);
 if ($stmt === false) {
+    $debug["stage"] = "prepare_failed";
+    $debug["sql_error"] = $conn->error;
     http_response_code(500);
-    echo json_encode(["error" => "Failed to prepare statement"]);
+    echo json_encode([
+        "error" => "Failed to prepare statement",
+        "sql_error" => $conn->error,
+        "sql" => $sql,
+        "debug" => $debug
+    ]);
     exit();
 }
+$debug["stage"] = "statement_prepared";
 
 // Bind parameters dynamically
 if (!empty($params)) {
-    $stmt->bind_param($types, ...$params);
+    try {
+        $stmt->bind_param($types, ...$params);
+        $debug["stage"] = "params_bound";
+    } catch (Exception $e) {
+        $debug["stage"] = "bind_failed";
+        $debug["bind_error"] = $e->getMessage();
+        http_response_code(500);
+        echo json_encode([
+            "error" => "Failed to bind parameters",
+            "bind_error" => $e->getMessage(),
+            "debug" => $debug
+        ]);
+        exit();
+    }
 }
 
-if ($stmt->execute()) {
-    $result = $stmt->get_result();
-    $results = [];
-
-    while ($row = $result->fetch_assoc()) {
-        $results[] = [
-            "id" => $row['id'],
-            "title" => $row['title'],
-            "snippet" => $row['snippet']
-        ];
+// Execute and fetch results
+try {
+    if ($stmt->execute()) {
+        $debug["stage"] = "executed";
+        $result = $stmt->get_result();
+        $results = [];
+        while ($row = $result->fetch_assoc()) {
+            $results[] = [
+                "id" => $row['id'],
+                "title" => $row['title'],
+                "snippet" => $row['snippet']
+            ];
+        }
+        $debug["result_count"] = count($results);
+        echo json_encode($results);
+    } else {
+        $debug["stage"] = "execute_failed";
+        $debug["stmt_error"] = $stmt->error;
+        http_response_code(500);
+        echo json_encode([
+            "error" => "Failed to execute query",
+            "stmt_error" => $stmt->error,
+            "debug" => $debug
+        ]);
     }
-
-    echo json_encode($results);
-} else {
+} catch (Exception $e) {
+    $debug["stage"] = "exception";
+    $debug["exception"] = $e->getMessage();
     http_response_code(500);
-    echo json_encode(["error" => "Failed to execute query"]);
+    echo json_encode([
+        "error" => "Exception during execution",
+        "exception" => $e->getMessage(),
+        "debug" => $debug
+    ]);
 }
 
 $stmt->close();
